@@ -1,0 +1,9 @@
+version: "3"
+services:
+  web:
+    image: localhost:5000/python-app
+    build: .
+    ports:
+      - 8000:8000
+  redis:
+    image: redis:alpine
