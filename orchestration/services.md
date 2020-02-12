@@ -25,4 +25,13 @@ Note that a task is a one-way mechanism. It progresses monotonically through a f
 
 ### Pending services
 
+A service may be configured in such a way that no node currently in the swarm can run tasks. In this case, the service is in the state `pending`. Other situations where it is in state `pending`:
+* All nodes are paused or drained and you create a service - it is pending until one of the nodes becomes available
+* No node in the swarm has the reserved amount of memory you specified, the service remains pending until a node is available that can run the tasks
+* You can impose placement constraints on the service, and the constraints may not be able to be honored at a given time
+
+This behavior illustrates that the requirements and configuration of your tasks are not tightly tied to the current state of the swarm.
+
+### Replicated and global services
+
 ...
