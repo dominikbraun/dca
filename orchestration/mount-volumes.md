@@ -72,12 +72,83 @@ Use `docker service ps nginx` to verify that the service tasks are up and runnin
 
 ### Use a read-only volume
 
-...
+For some development applications, the container needs to write into the bind mount so that changes are propagated back to the Docker host. At other times, the container merely needs read access to the data. Note that multiple contaners can mount the same volume: Some of them with read-write access and some others with read-only access.
 
+Making a mount read-only is achieved through the `readonly` option:
+
+```shell script
+$ docker container run -d \
+  --name nginxtest \
+  --mount source=my-vol,destination=/usr/share/nginx/html,readonly \
+  nginx:latest
+```
+
+When using `--volume` or `-v`, the option's name is `ro` and follows a after a colon (`:`).
 
 ### Use a volume driver
 
-...
+When you create a volume using `docker volume create`, or when you start a container with a volume that doesn't exist yet, you can specify a volume driver. This example uses the `vieux/sshfs` volume driver and assumes that there are two Docker hosts.
+
+On one of the hosts, install the plugin:
+
+```shell script
+$ docker plugin install --grant-all-permissions vieux/sshfs
+```
+
+Create a volume using the new driver.
+
+```shell script
+$ docker volume create \
+  --driver vieux/sshfs \
+  -o sshcmd=test@node2:/home/test \
+  -o password=testpassword \
+  sshvolume
+```
+
+Now start a container using the created volume:
+
+```shell script
+$ docker container run -d \
+  --name sshfs-container \
+  --volume-driver vieux/sshfs
+  --mount source=sshvolume,target=/app,volume-opt=sshcmd=test@node2:/home/test,volume-opt=password=testpassword
+  nginx:latest
+```
+
+### Backup, restore and migrate volumes
+
+Volumes are useful for backing up, restoring or migrating data. The `--volumes-from` flag allows a container to mount another container's volumes.
+
+**Backup a container:** For example, create a container named `dbstore`:
+
+```shell script
+$ docker container run -v /dbdata --name dbstore ubuntu /bin/bash
+```
+
+Next up, launch another container and mount the volume from the dbstore container:
+
+```shell script
+$ docker container run \
+  --rm \
+  --volumes-from dbstore \
+  -v $(pwd):/backup \
+  ubuntu \
+  tar cvf /backup/backup.tar /dbdata
+```
+
+This will launch the container, mount the current host directory as `/backup` and tar the contents of `/dbdata` into the `backup` directory.
+
+**Restore a container from backup:** With the backup just created, you can restore it to the same or another container.
+
+```shell script
+$ docker container run -v /dbdata --name dbstore2 ubuntu /bin/bash
+```
+
+Then un-tar the backup file into the new container's data volume.
+
+```shell script
+$ docker container run --rm --volumnes-from dbstore2 -v $(pwd):/backup ubuntu bash -c "cd /dbdata && tar xvf /backup/backup.tar --strip 1"
+```
 
 ### See also
 
