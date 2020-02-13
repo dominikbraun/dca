@@ -13,7 +13,7 @@ When you create a service, you specify the container image to be used and which 
 
 When a new service gets deployed to the swarm, the swarm manager considers the service definition to be the desired state of the service. After that, the manager schedules the services on nodes in the swarm: For the nodes' point of view, this are replica tasks. They run independently of each other.
 
- In the swarm mode model, each task invokes exactly one container.  A task is analogous to a slot where the scheduler places a container. Once the container is up and running, the scheduler recognizes that the task is in a running state. The task will be terminated if the container fails health checks or terminates.
+In the swarm mode model, each task invokes exactly one container.  A task is analogous to a slot where the scheduler places a container. Once the container is up and running, the scheduler recognizes that the task is in a running state. The task will be terminated if the container fails health checks or terminates.
  
 ### Tasks and scheduling
 
@@ -34,4 +34,8 @@ This behavior illustrates that the requirements and configuration of your tasks 
 
 ### Replicated and global services
 
-...
+There are two types of service deployments: Replicated service deployments and global service deployments.
+
+For a replicated service, you specify the number of identical tasks to be run. For example, you decide to deploy an HTTP service with 3 replicas - each serving the exact same content.
+
+A global service is a service that runs one task on every node. There is no pre-defined number of tasks. Each time you add a node to the swarm, the orchestrator creates a task and the scheduler assigns the task to the new node. Typical examples for global services are monitoring agents, anti-virus scanners or other types of containers you want to run on every node in the swarm. 
