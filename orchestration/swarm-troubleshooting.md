@@ -8,20 +8,9 @@ Issues are usually discovered at the top of the stack so errors can be tracked d
 * OS kernel panics
 * Exhaustion of file descriptors
 
---Container---Container--
-------Docker Engine------
---------OS kernel--------
---Physical/virtual host--
-
 ### Viewing Software as an Onion
 
 Inspecting software components is like peeling an onion, starting from outside and working your way in. In Docker, there are many layers of encapsulation: the OS kernel, containers, tasks that encapsulate containers as units of work, services or Pods that represent application components, and stacks that represent full applications. All of these are first class objects in Swarm und Kubernetes and can be inspected independently.
-
--------------Stack-------------
-----Service--------Service-----
-----\ Task---------\ Task------
------\ Container----\ Container
--------------------------------
 
 ### Viewing Software as a Flow
 
