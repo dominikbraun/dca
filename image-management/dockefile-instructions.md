@@ -75,4 +75,33 @@ This instructions copies new files or directories from `src` and adds them to th
 Multiple `src` resources may be specified and it follows the same rules as `ADD` regarding path names.
 
 `COPY`-specific rules:
-* 
+* The `src` path must be _inside_ the build context - `../mydirectory` is not possible because `docker build` sends the context directory to the Docker daemon.
+* If `src` is a directory, the entire contents of the directory are copied.
+* If `src` is any other kind of file, it is copied along with its metadata. If `dest` ends with a trailing slash, it will be considered a directory and the contents of `src` will be written at `dest/base(src)`.
+* If multiple `src` resources are specified, `dest` has to be a directory ending with a trailing slash.
+* If `dest` does not end with a trailing slash, it will be considered a regular file and the contents of `src` will be written at `dest`.
+* If `dest` does not exist, it will be created.
+
+### ENTRYPOINT
+
+`ENTRYPOINT` has two forms:
+* The exec form `ENTRYPOINT ["executable", "param1", "param2"]`
+* The shell form `ENTRYPOINT command param1 param2`
+
+An entrypoint allows you to configure a container that will run as an executable. For example, the following will start nginx with its default content:
+
+```shell script
+$ docker run --rm -it -p 80:80 nginx
+```
+
+Command line arguments to `docker run IMAGE` will be appended after all elements in an exec form `ENTRYPOINT` and will override all elements specified using `CMD`. This allows arguments to be passed to the entrypoint, e. g. `docker run IMAGE -d` will pass `-d` to the entrypoint.
+
+The shell form prevents any `CMD` or `run` command line arguments from being used, but has the disadvantage that the `ENTRYPOINT` will be started as a subcommand of `/bin/sh -c`, which does not pass signals -> a SIGTERM won't be received from `docker stop CONTAINER`.
+
+Just with `CMD`, only the last `ENTRYPOINT` instruction in a Dockerfile will have an effect.
+
+### EXPOSE
+
+The `EXPOSE` instruction informs Docker that the container listens on the specified network ports at runtime.
+
+Note that `EXPOSE` does not actually publish the port. It functions as a type of documentation between the person who builds the image and the person who runs the container about which ports are intended to be published. To actually publish the ports, use the `-p` flag when running the container.
