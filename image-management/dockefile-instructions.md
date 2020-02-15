@@ -24,3 +24,55 @@ The `CMD` instruction has three forms:
 There can only be _one_ `CMD` instruction in a Dockerfile (if you list more than one, only the last one will take effect).
 
 **The main purpose of a `CMD` instruction is to provide defaults for an executing container.** These defaults can include an executable or omit the executable (in which case an `ENTRYPOINT` has to be specified).
+
+> If `CMD` is used to provide default arguments for the `ENTRYPOINT` instruction, both instructions should be specified in the JSON array format.
+
+> The exec form doesn't invoke a command shell like the shell form, meaning that a shell processing does not happen and `CMD ["echo", "$HOME"]` won't work. Use `CMD ["sh", "-c", "echo $HOME"]` instead.
+
+The command specified in `CMD` can be overridden when running `docker container run IMAGE COMMAND` with a command argument.
+
+### ADD
+
+`ADD` has two forms:
+* `ADD src dest`
+* `ADD ["src", ..., "dest"]` which is required for paths containing whitespaces
+
+This instruction copies new files, directories or remote URLs from `src` and adds them to the filesystem of the image at the path `dest`.
+
+Multiple `src` resources my be specified, but if they're files or directories, their paths are interpreted as relative to the build context. Each `src` may contain wildcards. Examples:
+
+Add all files starting with "hom":
+
+```Dockerfile
+ADD hom* /mydir/
+``` 
+
+Add all .txt files starting with "hom" and a succeeding single character:
+
+```Dockerfile
+ADD home?.txt /mydir/
+```
+
+`ADD`-specific rules:
+* The `src` path must be _inside_ the build context - `../mydirectory` is not possible because `docker build` sends the context directory to the Docker daemon.
+* If `src` is an URL and `dest` _does not_ end with a trailing slash, then a file is downloaded from the URL and copied into `dest`
+* If `src` is an URL and `dest` _does_ end with a trailing slash, then the filename is inferred from the URL and the file is downloaded into `dest/filename`.
+* An URL must have a nontrivial path so that an appropriate filename can be discovered (example.com is not valid, but example.com/file.txt is)
+* If `src` is a _local_ tar archive, it is unpacked as a directory. A _remote_ tar archive is _not_ decompressed.
+* If `src` is any other kind of file, it is copied along with its metadata. In this case, if `dest` ends with a trailing slash, it will be considered a directory and the contents of `src` will be written at `dest/base(src)`.
+* If multiple `src` resources are specified, `dest` has to be a directory ending with a trailing slash.
+* If `dest` does not end with a trailing slash, it will be considered a regular file and the contents of `src` will be written at `dest`.
+* If `dest` does not exist, it will be created.
+
+### COPY
+
+`COPY` has two forms:
+* `COPY src dest`
+* `COPY ["src", ..., "dest"]` which is required for paths containing whitespaces
+
+This instructions copies new files or directories from `src` and adds them to the filesystem of the container at the path `dest`.
+
+Multiple `src` resources may be specified and it follows the same rules as `ADD` regarding path names.
+
+`COPY`-specific rules:
+* 
