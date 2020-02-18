@@ -49,4 +49,17 @@ is size_1 + size_2 + 1 image size (which is virtual_size - size).
 
 ### The copy-on-write strategy
 
+Copy-on-write is a strategy of sharing and copying files for maximum efficiency. If a file or directory exists in a
+lower layer within an image and another layer needs read access to it, it just uses the existing file. The first time
+that other layer needs write access, the file is copied into that layer and modified accordingly.
 
+This is especially true for the writable container layer that is added when a container is started. Any files the
+container doesn't change are not in the writeable layer, meaning that this layer is as small as possible and startup
+times for containers are kept short.
+
+The copy-on-write operation performed by the storage driver is up to the implementation. AUFS, overlay and overlay2
+search all layers for the file to modify (starting with the newest layer) and perform a `copy_up` operation on the
+first copy that is found. The file gets copied into the writable layer and the container cannot see any read-only
+copies of the file in the lower layers.
+
+Note that the `copy_up` operation may cause a noticeable performance overhead, depending on the storage driver.
