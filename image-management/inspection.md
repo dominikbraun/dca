@@ -19,3 +19,21 @@ Get a container's MAC address:
 ```shell script
 $ docker container inspect --format="{{range .NetworkSettings.Networks}}{{.MacAddress}}{{end}}" my-container
 ```
+
+Get a container's log path:
+
+```
+$ docker container inspect --format="{{.LogPath}}" my-container
+```
+
+Get a container's image name:
+
+```
+$ docker container inspect --format="{{.Config.Image}}" my-container
+```
+
+Get a container's port bindings:
+
+```
+$ docker container inspect --format="{{range $p, $conf := .NetworkSettings.Ports}}{{$p}} -> {{(index $conf 0).HostPort}}{{end}}" my-container
+```
