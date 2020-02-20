@@ -72,3 +72,27 @@ $ docker container run -d \
 ### Running a public available registry
 
 Running a externally accessible registry requires you to secure the registry with TLS.
+
+First, create a `certs` directory. Copy the `.crt` and `.key` files into it. Start the registry and mount the `cert`
+directory in the container:
+
+```shell script
+$ docker container run -d \
+  --restart=always \
+  --name registry \
+  --volume "$(pwd)"/certs:/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  -p 443:443
+  registry:2
+```
+
+Note that this sets also the environment variables for the HTTP address, TLS certificate path and TLS key path. Instead
+of mapping port 5000, port 443 for TLS will be used here.
+
+### Adding an authentication
+
+Registries should always implement access restrictions, maybe except for registries running on a secure local network.
+
+The most basic and most simple authentication is through `htpasswd`.
