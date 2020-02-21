@@ -95,4 +95,84 @@ of mapping port 5000, port 443 for TLS will be used here.
 
 Registries should always implement access restrictions, maybe except for registries running on a secure local network.
 
-The most basic and most simple authentication is through `htpasswd`.
+The most basic and most simple authentication is through `htpasswd`. Just create the `htpasswd` file inside a directory:
+
+```shell script
+$ mkdir auth && echo "testuser test123" >> auth/htpasswd 
+```
+
+Start the registry container with basic authentication:
+
+```shell script
+$ docker container run -d \
+  -p 5000:5000
+  --restart=always \
+  --name registry \
+  --volume "$(pwd)"/auth:/auth
+  -e "REGISTRY_AUTH=htpasswd"
+  -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm"
+  --volume "$(pwd)"/certs:/certs \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key
+  registry:2
+```
+
+Pushing or pulling an image will fail. Log in to the registry first:
+
+```shell script
+$ docker login localhost:5000
+```
+
+After providing a correct username and password, you can push and pull images from the registry. Is is also possible to
+use Apache or nginx as authentication proxy in front of the registry.
+
+### Running the registry as a swarm service
+
+A service provides several advantages over standalone containers. The use a declarative model, which means that you
+define the desired state and Docker works to keep your service in tha state. Also, services provide automatic load
+balancing and scaling as well as the ability to control the distribution of service instances across the swarm nodes.
+
+Whether you use a fully scaled service or a service with a single node or node constraints is determined by the storage
+backend you use.
+* A distributed storage driver like Amazon S3 allows you to create a fully scaled service. There won't be write
+conflicts if multiple workers write to the storage backend.
+* A local bind mount or volume implies that each worker node writes to its own storage location. This means that each
+registry contains a different data set. To solve that problem, use a single-replica service and a node constraint to
+ensure that only a single worker is writing to the bind mount.
+
+First, save the TLS certificate and the TLS key as secrets.
+
+```shell script
+$ docker secret create domain.crt certs/domain.crt
+$ docker secret create domain.key certs/domain.key
+```
+
+Next up, add a label to the node where you want to run the registry. You can retrieve the node name with
+`docker node ls`.
+
+```shell script
+$ docker node update --label-add registry=true my-node
+```
+
+Create the service and grant it access to the two secrets. Also, constrain it to only run on worker nodes with the label
+`registry=true`.
+
+```shell script
+$ docker service create \
+  --name registry \
+  --secret domain.crt \
+  --secret domain.key \
+  --constraint 'node.labels.registry==true' \
+  --mount source=/mnt/registry,destination=/var/lib/registry,type=bind \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/run/secrets/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/run/secrets/key.crt \
+  --publish pushlished=443,target=443 \
+  --replicas 1 \
+  registry:2
+```
+
+You can access the service on port 443 of any swarm node. Docker will forward the request on the node which is running
+the service.
+
+### 
