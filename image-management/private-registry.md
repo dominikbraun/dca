@@ -174,5 +174,3 @@ $ docker service create \
 
 You can access the service on port 443 of any swarm node. Docker will forward the request on the node which is running
 the service.
-
-### 
