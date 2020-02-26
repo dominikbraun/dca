@@ -22,3 +22,27 @@ $ cat $HOME/registry-password.txt | docker login --username myuser --password-st
 ```
 
 ### Privileged user requirement
+
+`docker login` requires the user to use `sudo` (or be root), except when connecting to a remote daemon (docker-machine)
+or when the user is added to the `docker` group.
+
+> Being a member of the `docker` group impacts the system security since it is root equivalent. See [Docker Daemon Attack Surface](https://docs.docker.com/engine/security/security/#docker-daemon-attack-surface)
+
+### Credentials store
+
+The Docker Engine can keep user credentials in an external credentials store such as the OS' native keychain. Using such
+an external store is more secure than storing credential in the Docker configuration file.
+
+To use a credentials store, you need an external helper program to interact with a specific keychain/external store.
+Docker requires that helper program to be in `$PATH`.
+
+[List of the available credential helpers](https://docs.docker.com/engine/reference/commandline/login/#parent-command#credentials-store)
+
+### Configure the credentials store
+
+The credentials store needs to be specified in `$HOME/.docker/config.json` to tell Docker to use it. If the program's
+name is `docker-credential-osxkeychain`, the JSON value for `credsStore` is `osxkeychain`.
+
+### Default behaviour
+
+...
