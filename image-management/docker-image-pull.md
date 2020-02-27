@@ -74,4 +74,33 @@ $ docker image pull ubuntu@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c1
   ...
 ```
 
-...
+This digest notation can also be used in a Dockerfile `FROM` instruction.
+
+> Pinning prevents Docker from pulling newer versions, which may contain security updates. To receive those updates, you
+> have to update the image digest to the newer version accordingly.
+
+### Pull from a different registry
+
+By default, `docker image pull` pulls from the Docker Hub registry. It is also possible to specify another registry to
+pull from. A registry path is similar to an URL, but without a protocol specifier like `https://`.
+
+The following command pulls the `testing/test-image` from a local registry available under `localhost:5000`.
+
+```shell script
+$ docker image pull localhost:5000/testing/test-image
+```
+
+Docker uses `https://` to connect to a registry, unless insecure connections are allowed - see [insecure registries](https://docs.docker.com/engine/reference/commandline/dockerd/#insecure-registries).
+
+### Pull a repository with multiple images
+
+`docker image pull` pulls a single image by default. However, a repository can  contain multiple images and Docker is
+able to pull all of these images using the `--all-tags` flag.
+
+This command will pull all images from the `fedora` repository:
+
+```shell script
+$ docker image pull --all-tags fedora
+```
+
+To list the images that have been pulled and are now available locally, run `docker images fedora`.

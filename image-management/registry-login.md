@@ -45,4 +45,8 @@ name is `docker-credential-osxkeychain`, the JSON value for `credsStore` is `osx
 
 ### Default behaviour
 
-...
+By default, Docker looks for the native binary on each platform, i. e. _osxkeychain_ on macOS, _wincred_ on Windows and
+_pass_ (or _secretservice_ if that can't be found) on Linux.
+
+If none of these default binaries are found, Docker stores the credentials in base64 encoding in the config files
+described above.
