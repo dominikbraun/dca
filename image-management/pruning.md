@@ -37,4 +37,15 @@ are applicable just like with `docker image prune`.
 
 ### Prune networks
 
-...
+Docker networks don't take up much disk space, but they do create `iptable` rules, bridge network devices and routing
+table entries. The `docker network prune` command cleans up networks that aren't used by any containers.
+
+This command allows the same `--force` and `--filter` flags as the other `prune` commands.
+
+### Prune everything
+
+There's a shortcut for pruning all these objects at once: `docker system prune`. For Docker 17.06.1 and higher, you have
+to provide the `--volumes` flag to prune volumes as well.
+
+Just as the other `prune` commands, you'll be prompted to continue. You can bypass that prompt using the `--force` or
+`f` flag.
