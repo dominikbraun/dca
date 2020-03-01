@@ -5,6 +5,7 @@ to Docker EE topics. This way you can concentrate on the Docker EE topics and us
 
 ### Domain 2: Image Creation, Management, and Registry (20% of exam)
 * [Sign an image in a registry](https://docs.docker.com/datacenter/dtr/2.4/guides/user/manage-images/sign-images/)
+* [Delete an image from a registry (DTR)](https://docs.docker.com/datacenter/dtr/2.0/repos-and-images/delete-an-image/)
 
 ### Domain 3: Installation and Configuration (15% of exam)
 * [Deploy UCP](https://docs.docker.com/ee/ucp/)
