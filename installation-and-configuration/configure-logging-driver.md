@@ -85,3 +85,22 @@ This command will start an Alpine container with log output in non-blocking mode
 ```shell script
 $ docker run -it --log-opt mode=non-blocking --log-opt max-buffer-size=4m alpine ping 127.0.0.1
 ```
+
+### Use environment variables or labels with logging drivers
+
+Some logging drivers add the value of a containers `--env` or `--label` flags to the container's logs. This command runs
+a container using the daemon's default logging driver but sets the environment variable `os=ubuntu`:
+
+```shell script
+$ docker container run -dit --label production_status=testing -e os=ubuntu alpine sh
+```
+
+If the logging driver supports it, this adds additional fields to the logging output. The following output is generated
+by the `json-file` logging driver:
+
+```json
+"attrs": {
+  "production_status": "testing",
+  "os": "ubuntu",
+}
+```
