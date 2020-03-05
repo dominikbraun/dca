@@ -69,4 +69,19 @@ $ docker container inspect --format "{{.HostConfig.LogConfig.Type}}" my-containe
 
 ### Configure the delivery mode of log messages
 
-...
+Docker provides two modes for delivering messages from the container to the log driver:
+* direct, blocking delivery from container to driver (default)
+* non-blocking delivery that stores log messages in an intermediate per-container ring buffer for consumption by driver
+
+The `non-blocking` message delivery mode prevents application from blocking due to logging back pressure. Applications
+are likely to fail in unexpected ways when STDERR or STDOUT block.
+
+Using the `--log-opt` flag, you can specify these and other logging options. The `mode` log option controls whether to
+use `blocking` or `non-blocking` message delivery. The `max-buffer-size` log option controls the size of the ring buffer
+used when `mode` is set to `non-blocking` and defaults to 1 MB.
+
+This command will start an Alpine container with log output in non-blocking mode and a 4 MB buffer:
+
+```shell script
+$ docker run -it --log-opt mode=non-blocking --log-opt max-buffer-size=4m alpine ping 127.0.0.1
+```
