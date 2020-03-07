@@ -45,7 +45,65 @@ managers ensures that during a network partition, there is a higher chance that 
 requests if the network is partitioned into two sets. Keeping the quorum is not guaranteed if you encounter more than
 two network partitions.
 
-(Table)
+* Swarm Size = 1, Majority = 1 -> Fault Tolerance = 0
+* Swarm Size = 2, Majority = 2 -> Fault Tolerance = 0
+* Swarm Size = 3, Majority = 2 -> Fault Tolerance = 1
+* Swarm Size = 4, Majority = 3 -> Fault Tolerance = 1
+* Swarm Size = 5, Majority = 3 -> Fault Tolerance = 2
+* Swarm Size = 6, Majority = 4 -> Fault Tolerance = 2
+* Swarm Size = 7, Majority = 4 -> Fault Tolerance = 2
+* Swarm Size = 8, Majority = 5 -> Fault Tolerance = 3
+* Swarm Size = 9, Majority = 5 -> Fault Tolerance = 4
+
+> Fault Tolerance = Swarm Size - Majority
+> => Fault Tolerance = Swarm Size - (floor(Swarm Size / 2) + 1)
+
+For example, in a swarm with 5 nodes, if you lose 3 nodes, you don't have a quorum. Therefore you can't add or remove
+nodes until you recover one of the unavailable manager nodes or recover the swarm with disaster recovery commands.
+
+While it is possible to scale a swarm down to a single manager node, it is impossible to demote the last manager node.
+This ensures that you maintain access to the swarm and that the swarm can still process requests. Scaling down to a
+single manager node is an unsafe operation and is not recommended. If the last node leaves the swarm unexpectedly during
+the demote operation, the swarm becomes unavailable until you reboot the node or restart with `--force-new-cluster`.
+
+You manage a swarm membership with the `docker swarm` and `docker node` subsystems.
+
+### Distribute manager nodes
+
+In addition to maintaining an odd number of manager nodes, pay attention to datacenter topology when placing managers.
+For optimal fault-tolerance, distribute manager nodes across a minimum of 3 availability-zones to support failures of an
+entire set of machines or common maintenance scenarios.
+
+If you suffer a failure in one of these zones, the swarm should maintain the quorum of manager nodes available to
+process requests and re-balance workloads.
+
+* Manager nodes = 3 -> Repartition (on 3 availability-zones) = 1-1-1
+* Manager nodes = 5 -> Repartition (on 3 availability-zones) = 2-2-1
+* Manager nodes = 7 -> Repartition (on 3 availability-zones) = 3-2-2
+* Manager nodes = 9 -> Repartition (on 3 availability-zones) = 3-3-3
+
+### Run manager-only nodes
+
+By default, manager nodes also act as worker nodes. This means the scheduler can assign tasks to a manager node. For
+small and non-critical swarms, assigning tasks to managers is relatively low-risk as long as you schedule services using
+resource constraints for CPU and memory (otherwise, these services may consume to much CPU/memory and the manager nodes
+don't have any resources left for actual swarm management).
+
+However, because manager nodes use the Raft consensus algorithm to replicate data in a consistent way, they re sensitive
+to resource starvation. **You should isolate managers in your swarm from processes that might block swarm operations
+like swarm heartbeat or leader elections.**
+
+To avoid interference with manager node operations, you can drain manager nodes to make them unavailable as worker
+nodes:
+
+```shell script
+$ docker node update --availability drain NODE
+```
+
+When you drain a node, the scheduler re-assigns any tasks running on the node to other available worker nodes in the
+swarm. It also prevents the scheduler from assigning tasks to the node.
 
 ### See also
 * [Recovering from losing the quorum](https://docs.docker.com/engine/swarm/admin_guide/#recover-from-losing-the-quorum)
+* [Recover from disaster](https://docs.docker.com/engine/swarm/admin_guide/#recover-from-disaster)
+* [Add nodes to a swarm](https://docs.docker.com/engine/swarm/join-nodes/)
