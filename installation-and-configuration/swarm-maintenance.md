@@ -103,6 +103,34 @@ $ docker node update --availability drain NODE
 When you drain a node, the scheduler re-assigns any tasks running on the node to other available worker nodes in the
 swarm. It also prevents the scheduler from assigning tasks to the node.
 
+### Add manager nodes for load balancing
+
+Add nodes to the swarm to balance your swarm's load. Replicated service tasks are distributed accross the swarm as evenly as possible over time, as long as the worker nodes are matches to the requirements of the services.
+
+When limiting a service to run only specific types of nodes, remember that worker nodes that do not meet that requirements cannot run these tasks.
+
+### Monitor swarm health
+
+You can monitor the health of manager nodes by querying the docker nodes API in JSON format through the `/nodes` HTTP endpoint. From the command line, run `docker node inspect NODE` to query the nodes. For instance, to query the reachability of the node as a manager:
+
+```shell script
+$ docker node inspect manager1 --format "{{.ManagerStatus.Reachability}}"
+
+  reachable
+```
+
+To query the status of the node as a worker that accepts tasks:
+
+```shell script
+$ docker node inspect manager1 --format "{{.Status.State}}"
+
+ready
+```
+
+For those commands, we can see that `manager1` is both at the status `reachable` as a manager and `ready` as a worker.
+
+An _unreachable_ health status means that this particular node ...
+
 ### See also
 * [Recovering from losing the quorum](https://docs.docker.com/engine/swarm/admin_guide/#recover-from-losing-the-quorum)
 * [Recover from disaster](https://docs.docker.com/engine/swarm/admin_guide/#recover-from-disaster)
