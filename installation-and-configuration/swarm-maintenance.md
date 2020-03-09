@@ -129,7 +129,62 @@ ready
 
 For those commands, we can see that `manager1` is both at the status `reachable` as a manager and `ready` as a worker.
 
-An _unreachable_ health status means that this particular node ...
+An _unreachable_ health status means that this particular manager is unreachable from other manager nodes. In this case
+you need to take action to restore the unreachable manager:
+* Restart the daemon and see if the manager comes back as reachable
+* Reboot the machine
+* Add another manager node or promote a worker to be a manager node. If you do this, you need to cleanly remove the
+failed node entry from the manager set using `docker node demote NODE` and `docker node rm NODE`.
+
+Alternatively, you can also get an overview of the swarm health from a manager node with `docker node ls`.
+
+### Troubleshoot a manager node
+
+You should _never_ restart a manager node by copying the `raft` directory from another node. The data directory is
+unique to a node ID. A node can only use a node ID once to join the swarm. The node ID space should be globally unique.
+
+To cleanly re-join a manager node to a cluster:
+* To demote the node to a worker, run `docker node demote NODE`.
+* To remove the node from the swarm, run `docker node rm NODE`.
+* Re-join the node to the swarm with a fresh state using `docker swarm join`.
+
+### Forcibly remove a node
+
+In most cases, you should shut down a node before removing it from a swarm. If a node becomes unreachable, unresponsive
+or compromised you can forcefully remove the node without without it down by passing the `--force` flag. For instance,
+if `node9` becomes compromised:
+
+```shell script
+$ docker node rm node9
+
+Error response from daemon: rpc error: code = 9 desc = node node9 is not down and can't be removed
+
+$ docker node rm --force node9
+
+  Node node9 removed from swarm
+```
+
+```shell script
+$ docker node rm --force node9
+
+  Node node9 removed from swarm
+```
+
+### Back up the swarm
+
+Docker manager nodes store the swarm state and manager logs in the `/var/lib/docker/swarm` directory. In 1.13 and
+higher, this data includes the keys used to encrypt the Raft logs. Without these keys, you cannot restore the swarm.
+
+You can back up the swarm using any manager. Use the following procedure:
+1. If the swarm has auto-lock enabled, you need the unlock key to restore the swarm from backup. Retrieve the unlock key
+if necessary and store it in a safe location.
+2. Stop Docker on the manager before backing up the data, so that no data is being changed during the backup. It is
+possible to take a backup while the manager is running (a _hot backup_), but this is not recommended and your results
+are less predictably when restoring. While the manager is down, other nodes continue generating swarm data that is not
+part of the backup.
+
+> Be sure to maintain the quorum of swarm managers. During the time that a manager is down, your swarm is more
+> vulnerable to losing the quorum if further nodes are lost. ...
 
 ### See also
 * [Recovering from losing the quorum](https://docs.docker.com/engine/swarm/admin_guide/#recover-from-losing-the-quorum)
