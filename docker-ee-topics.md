@@ -8,6 +8,7 @@ to Docker EE topics. This way you can concentrate on the Docker EE topics and us
 * [Delete an image from a registry (DTR)](https://docs.docker.com/datacenter/dtr/2.0/repos-and-images/delete-an-image/)
 
 ### Domain 3: Installation and Configuration (15% of exam)
+* [Create and manage teams in DTR](https://docs.docker.com/datacenter/dtr/2.4/guides/admin/manage-users/create-and-manage-teams/)
 * [Deploy UCP](https://docs.docker.com/ee/ucp/)
 * [Deploy DTR](https://docs.docker.com/datacenter/dtr/2.3/guides/admin/install/)
 * [Deploy Docker for AWS](https://docs.docker.com/docker-for-aws/)

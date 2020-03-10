@@ -184,7 +184,34 @@ are less predictably when restoring. While the manager is down, other nodes cont
 part of the backup.
 
 > Be sure to maintain the quorum of swarm managers. During the time that a manager is down, your swarm is more
-> vulnerable to losing the quorum if further nodes are lost. ...
+> vulnerable to losing the quorum if further nodes are lost. The number of managers you run is a trade-off. If you
+> regularly take down managers to do backups, consider running a five manager swarm so that you can lose an additional
+> manager while the backup is running.
+
+3. Back up the entire `/var/lib/docker/swarm` directory.
+4. Restart the manager.
+
+### Restore from a backup
+
+After backing up the swarm, use the following procedure to restore the data to a new swarm:
+1. Shut down Docker on the target host machine for the restored swarm.
+2. Remove the contents of the `/var/lib/docker/swarm` directory.
+3. Restore the `/var/lib/docker/swarm` directory with the contents of the backup.
+4. Start Docker on the new node. Unlock the swarm if necessary and re-initialize the swarm using the following command:
+
+```shell script
+$ docker swarm init --force-new-cluster
+```
+
+This prevents the node from attempting to connect to nodes that were part of the old swarm.
+
+5. Verify that the state of the swarm is as expected (for example by checking if all services are present).
+6. If you use auto-lock: Rotate the unlock key.
+7. Add manager and worker nodes to your swarm and reinstate your previous backup regimen on the new swarm.
+
+### Recover from losing the quorum
+
+...
 
 ### See also
 * [Recovering from losing the quorum](https://docs.docker.com/engine/swarm/admin_guide/#recover-from-losing-the-quorum)
