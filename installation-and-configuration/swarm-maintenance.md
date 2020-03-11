@@ -55,7 +55,7 @@ two network partitions.
 * Swarm Size = 8, Majority = 5 -> Fault Tolerance = 3
 * Swarm Size = 9, Majority = 5 -> Fault Tolerance = 4
 
-> Fault Tolerance = Swarm Size - Majority
+> Fault Tolerance = Swarm Size - Quorum
 > => Fault Tolerance = Swarm Size - (floor(Swarm Size / 2) + 1)
 
 For example, in a swarm with 5 nodes, if you lose 3 nodes, you don't have a quorum. Therefore you can't add or remove
@@ -211,7 +211,50 @@ This prevents the node from attempting to connect to nodes that were part of the
 
 ### Recover from losing the quorum
 
-...
+Swarm is resilient to failures and the swarm can recover from any number of temporary node failures or other transient
+errors. However, a swarm cannot automatically recover if it loses quorum. Tasks on existing worker nodes continue to
+run, but administrative tasks are not possible, including scaling or updating services and joining or removed nodes form
+the swarm. **The best way to recover is to bring the missing manager nodes back online.** If that is not possible,
+consider the following:
+
+In a swarm of `n` managers, a quorum of manager nodes must always be available. For example, in a swarm with five
+managers, a minimum of three must be operational and in communication with each other. In other words, the swarm can
+tolerate up to `(n-1)/2` permanent failures beyond which requests involving swarm management cannot be processed.
+
+If you lose the quorum of managers, you cannot administer the swarm. If you have lost the quorum and you attempt to
+perform any administrative management operation on the swarm, an error occurs:
+
+```
+Error response from daemon: rpc error: code = 4 desc = context deadline exceeded
+```
+
+The best way to recover from quorum is to bring the failed nodes back online. If you can't do that, the only way to
+recover from this state is to use the `--force-new-cluster` action from a manager node. THis removes all managers except
+the manager the command was run from. The quorum is achieved because there is now only one manager. Promote nodes to be
+managers until you have the desired number of managers.
+
+### Force the swarm to re-balance
+
+Generally, you do not need to force the swarm to re-balance tasks. When you add a new node to a swarm, or a node
+reconnects to the swarm, the swarm does not automatically give a workload to the idle node. This is a design decision.
+If the swarm periodically shifted tasks to different nodes for the sake of balance, the clients using those tasks would
+be disrupted. The goal is to avoid disrupting running services. When new tasks start, or when a node with running tasks
+becomes unavailable, those tasks are given to less busy nodes. The goal is eventual balance, with minimum disruption to
+the end user.
+
+With Docker 1.13 and higher, you can use the `--force` or `-f` flag with the `docker service update` command to force
+the service to redistribute its tasks across the available worker nodes. THis causes the service tasks to restart.
+Client applications may be disrupted. If you have configured it, your service uses a rolling update.
+
+If you use an earlier version and you want to achieve an even balance of load across workers and don't mind disrupting
+running tasks, you can force your swarm to re-balance by temporarily scaling the service upward. Use
+`docker service inspect --pretty SERVICE` to see the configured scale of a service. When you use `docker service scale`,
+the nodes with the lowest number of tasks are targeted to receive new workloads. There may be multiple under-loaded
+nodes in you swarm. You may need to scale the service up by modest increments a few times to achieve the balance you
+want across all the nodes.
+
+When the load is balanced to your satisfaction, you can scale the service back down to the original scale. You can use
+`docker service ps SERVICE` to assess the current balance of your service across nodes. 
 
 ### See also
 * [Recovering from losing the quorum](https://docs.docker.com/engine/swarm/admin_guide/#recover-from-losing-the-quorum)
