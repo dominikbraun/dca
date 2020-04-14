@@ -66,5 +66,21 @@ from the netshoot host, all managers, and hosts of unresponsive tasks as identif
 9. Collect the output of `docker run -v /var/run:/var/run  --network host --privileged dockereng/network-diagnostic:support.sh`
 from all hosts in the network path.
 
+### Troubleshooting the ingress network
+
+Service discovery is disabled on the ingress network for security reasons, so you can't use `nslookup tasks.service` to
+establish which backend IPs to test. Instead use the ipvs load balancer programming of the kernel.
+
+1. On a manager, use `docker service inspect` to identify the VIP for the service on the ingress network:
+
+```shell script
+$ ingress_id=$(docker network ls -qf name=ingress --no-trunc); docker service inspect <service_name> --format '{{range .Endpoint.VirtualIPs}}{{if eq "'${ingress_id}'" .NetworkID}}{{.Addr}}{{end}}{{end}}'
+```
+
+2. Using `curl`, identify a Docker host from which network requests to the ingress published port of the service are not
+answered correctly.
+
+...
+
 ### See also
 [Troubleshooting container networking](https://success.docker.com/article/troubleshooting-container-networking)
