@@ -7,6 +7,24 @@ offered by networking vendors and the community.
 The most commonly used built-in network drivers are `bridge`, `overlay` and `macvlan`. Together they cover a very broad
 list of networking use cases and environments.
 
+### Quick summary
+
+Docker Native Network Drivers:
+* **Host**: With the `host` driver, a container uses the networking stack of the host. There is no namespace separation,
+and all interfaces on the host can be used directly by the container.
+* **Bridge**: The `bridge` driver creates a Linux bridge on the host that is managed by Docker. By default, containers
+on a bridge can communicate with each other. External access to containers can also be configured through the bridge
+driver.
+* **Overlay**: The `overlay` driver creates an overlay network that supports multi-host networks out of the box. It uses
+a combination of local Linux bridges and VXLAN to overlay container-to-container communications over physical network
+infrastructure.
+* **MACVLAN**: The `macvlan` driver uses the Linux MACVLAN bridge mode to establish a connection between container
+interfaces and a parent host interface. It can be used to provide IP addresses to containers that are routable on the
+physical network. Additionally, VLANs can be trunked to the `macvlan` driver to enforce Layer 2 container segmentation.
+* **None**: The `none` driver gives a container its own networking stack and network namespace. It does not configure
+interfaces inside the container. Without additional configuration, the container is completely isolated from the host
+networking stack.
+
 ### Bridge Network Driver
 
 The `bridge` network driver is a simple to use, simple to troubleshoot and simple to understand network driver, which
@@ -71,3 +89,7 @@ sub-interface or even a bonded host adaptor which bundles Ethernet interfaces in
 address from the external network is required during MACVLAN network configuration, as a MACVLAN network is a L2 segment
 from the container to the network gateway. Like all Docker networks, MACVLAN networks are segmented from each other -
 providing access within a network, but not between networks.
+
+The `macvlan` driver can be configured in different ways tot achieve different results. In the below example, we create
+two MACVLAN networks joined to different subinterfaces. This type of configuration can be used to extend multiple L2
+VLANs through the host interface directly to containers.
