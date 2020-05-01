@@ -43,3 +43,6 @@ only signed image tags and the less desirable, unsigned image tags are "invisibl
 
 To the consumer who has not enabled DCT, nothing about how they work with Docker images changes. Every images is visible
 regardless of whether it is signed or not.
+
+### See also
+[Content trust in Docker](https://docs.docker.com/engine/security/trust/content_trust/)
