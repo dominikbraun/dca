@@ -106,4 +106,38 @@ $ docker trust sign dtr.example.com/admin/demo:1
   Successfully signed dtr.example.com/admin/demo:1
 ```
 
-...
+Alternatively, once the keys have been imported, an image can be published with the `docker image push` command, by exporting the DCT environment variable.
+
+```shell script
+$ export DOCKER_CONTENT_TRUST=1
+$ docker push dtr.example.com/admin/demo:1
+  The push refers to repository [dtr.example.com/admin/demo:1]
+  7bff100f35cb: Pushed
+  1: digest: sha256:3d2e482b82608d153a374df3357c0291589a61cc194ec4a9ca2381073a17f58e size: 528
+  Signing and pushing trust metadata
+  Enter passphrase for signer key with ID 8ae710e:
+  Successfully signed dtr.example.com/admin/demo:1
+```
+
+Remote trust data can be viewed by the `docker trust inspect` command:
+
+```shell script
+$ docker trust inspect --pretty dtr.example.com/admin/demo:1
+  
+  Signatures for dtr.example.com/admin/demo:1
+
+  SIGNED TAG          DIGEST                                                             SIGNERS
+  1                   3d2e482b82608d153a374df3357c0291589a61cc194ec4a9ca2381073a17f58e   jeff
+
+  List of signers and their keys for dtr.example.com/admin/demo:1
+
+  SIGNER              KEYS
+  jeff                8ae710e3ba82
+
+  Administrative keys for dtr.example.com/admin/demo:1
+
+    Repository Key:	10b5e94c916a0977471cc08fa56c1a5679819b2005ba6a257aa78ce76d3a1e27
+    Root Key:	84ca6e4416416d78c4597e754f38517bea95ab427e5f95871f90d460573071fc
+```
+
+Remote trust data for a tag can be removed by the `docker trust revoke IMAGE` command.
